@@ -2,10 +2,8 @@
 #define ADDRESSINFOFORM_H
 
 #include <QFrame>
-
-namespace Ui {
-class AddressInfoForm;
-}
+#include <QLabel>
+#include <QLineEdit>
 
 class AddressInfoForm : public QFrame
 {
@@ -14,9 +12,25 @@ class AddressInfoForm : public QFrame
 public:
     explicit AddressInfoForm(QWidget *parent = nullptr);
     ~AddressInfoForm();
+    QFrame *container;
 
 private:
-    Ui::AddressInfoForm *ui;
+    /*
+    QLabel *nameLabel;
+    QLabel *streetAddressLabel;
+    QLabel *cityLabel;
+    QLabel *stateLabel;
+    QLabel *zipLabel;
+    QLabel *phoneLabel;
+    QLabel *emailLabel;
+    */
+    QLineEdit *name;
+    QLineEdit *streetAddress;
+    QLineEdit *city;
+    QLineEdit *state;
+    QLineEdit *zip;
+    QLineEdit *phone;
+    QLineEdit *email;
 };
 
 #endif // ADDRESSINFOFORM_H

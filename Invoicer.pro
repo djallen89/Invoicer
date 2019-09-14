@@ -36,9 +36,7 @@ HEADERS += \
         lineitem.h
 
 FORMS += \
-        addressinfoform.ui \
-        invoicer.ui \
-        lineitem.ui
+        invoicer.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

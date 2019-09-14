@@ -2,7 +2,9 @@
 #define INVOICER_H
 
 #include <QMainWindow>
+#include <QVector>
 #include "addressinfoform.h"
+#include "lineitem.h"
 
 namespace Ui {
     class Invoicer;
@@ -15,15 +17,17 @@ class Invoicer : public QMainWindow
 public:
     explicit Invoicer(QWidget *parent = nullptr);
     ~Invoicer();
-
+               
 private slots:
     void quit();
+    void addLineItem();
     
 private:
-    QWidget *container;
     Ui::Invoicer *ui;
-    Ui::AddressInfoForm *yourInfo;
-    //Ui::AddressInfoForm *clientInfo;
+    AddressInfoForm *yourInfo;
+    AddressInfoForm *clientInfo;
+    QVector<LineItem*> lineItems;
+    QWidget *lineItemsContainer;
 };
 
 #endif // INVOICER_H
