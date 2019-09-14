@@ -1,19 +1,11 @@
 #include "addressinfoform.h"
 #include <QFormLayout>
+#include <QSizePolicy>
 
-AddressInfoForm::AddressInfoForm(QWidget *parent) :
-    QFrame(parent)
+AddressInfoForm::AddressInfoForm(QString entityName, QWidget *parent) :
+    QGroupBox(entityName, parent)
 {
     container = new QFrame();
-    /*
-    nameLabel = new QLabel("Name");
-    streetAddressLabel = new QLabel("Street Address");
-    cityLabel = new QLabel("City");
-    stateLabel = new QLabel("State");
-    zipLabel = new QLabel("Zip Code");
-    phoneLabel = new QLabel("Phone Number");
-    emailLabel = new QLabel("Email Address");
-    */
     name = new QLineEdit();
     streetAddress = new QLineEdit();
     city = new QLineEdit();
@@ -31,6 +23,9 @@ AddressInfoForm::AddressInfoForm(QWidget *parent) :
     formLayout->addRow(tr("Phone Number"), phone);
     formLayout->addRow(tr("Email Address"), email);
     setLayout(formLayout);
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    setMinimumSize(300, 200);
+    setMaximumSize(10000, 500);
 }
 
 AddressInfoForm::~AddressInfoForm()
@@ -43,13 +38,4 @@ AddressInfoForm::~AddressInfoForm()
     delete phone;
     delete email;
     delete container;
-    /*
-    delete nameLabel;
-    delete streetAddressLabel;
-    delete cityLabel;
-    delete stateLabel;
-    delete zipLabel;
-    delete phoneLabel;
-    delete emailLabel;
-    */
 }

@@ -28,12 +28,14 @@ SOURCES += \
         addressinfoform.cpp \
         lineitem.cpp \
         main.cpp \
-        invoicer.cpp
+        invoicer.cpp \
+        pdfbuilder.cpp
 
 HEADERS += \
         addressinfoform.h \
         invoicer.h \
-        lineitem.h
+        lineitem.h \
+        pdfbuilder.h
 
 FORMS += \
         invoicer.ui

@@ -16,6 +16,7 @@ class Invoicer : public QMainWindow
 
 public:
     explicit Invoicer(QWidget *parent = nullptr);
+    void buildPDF();
     ~Invoicer();
                
 private slots:

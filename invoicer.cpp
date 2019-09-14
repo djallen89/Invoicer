@@ -8,8 +8,8 @@
 Invoicer::Invoicer(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Invoicer),
-    yourInfo(new AddressInfoForm),
-    clientInfo(new AddressInfoForm),
+    yourInfo(new AddressInfoForm(QString("Your Information"))),
+    clientInfo(new AddressInfoForm(QString("Client Information"))),
     lineItems(QVector<LineItem*>()),
     lineItemsContainer(new QWidget)
 {
@@ -20,7 +20,7 @@ Invoicer::Invoicer(QWidget *parent) :
     auto formLayout = new QHBoxLayout;
     formLayout->addWidget(yourInfo);
     formLayout->addWidget(clientInfo);
-    this->ui->formInfoTab->setLayout(formLayout);
+    this->ui->formInfoContainer->setLayout(formLayout);
 
     // set up line items
     auto linesLayout = new QVBoxLayout;
@@ -56,4 +56,9 @@ void Invoicer::addLineItem()
 {
     lineItems.push_back(new LineItem());
     this->lineItemsContainer->layout()->addWidget(lineItems.last()->container);
+}
+
+void Invoicer::buildPDF() {
+    //auto pdf_text = new PDFBuilder();
+    //pdf_text.simple_output();
 }
