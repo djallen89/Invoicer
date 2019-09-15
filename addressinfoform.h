@@ -16,15 +16,6 @@ public:
     QFrame *container;
 
 private:
-    /*
-    QLabel *nameLabel;
-    QLabel *streetAddressLabel;
-    QLabel *cityLabel;
-    QLabel *stateLabel;
-    QLabel *zipLabel;
-    QLabel *phoneLabel;
-    QLabel *emailLabel;
-    */
     QLineEdit *name;
     QLineEdit *streetAddress;
     QLineEdit *city;

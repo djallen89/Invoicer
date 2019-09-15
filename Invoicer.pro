@@ -25,16 +25,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        model/contactinfo.cpp \
+        model/docmodel.cpp \
         addressinfoform.cpp \
         lineitem.cpp \
         main.cpp \
         invoicer.cpp \
+        model/itemcatalog.cpp \
         pdfbuilder.cpp
 
 HEADERS += \
+        model/contactinfo.h \
+        model/docmodel.h \
         addressinfoform.h \
         invoicer.h \
         lineitem.h \
+        model/itemcatalog.h \
         pdfbuilder.h
 
 FORMS += \
@@ -44,3 +50,7 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+unix|win32: LIBS += -lhpdf
+
+DISTFILES +=
