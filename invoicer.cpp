@@ -20,19 +20,20 @@ Invoicer::Invoicer(QWidget *parent) :
     auto formLayout = new QHBoxLayout;
     formLayout->addWidget(yourInfo);
     formLayout->addWidget(clientInfo);
-    this->ui->formInfoContainer->setLayout(formLayout);
+    ui->formInfoContainer->setLayout(formLayout);
 
     // set up line items
     auto linesLayout = new QVBoxLayout;
-    this->lineItemsContainer->setLayout(linesLayout);
-    this->ui->lineItemsScrollArea->setWidget(lineItemsContainer);
-    this->addLineItem();
+    lineItemsContainer->setLayout(linesLayout);
+    ui->lineItemsScrollArea->setWidget(lineItemsContainer);
+    pushLineItem();
 
     // connect actions
     connect(ui->actionQuit, &QAction::triggered, this, &Invoicer::quit);
 
     // connect buttons
-    connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::addLineItem);
+    connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::pushLineItem);
+    connect(ui->removeLineItemButton, &QPushButton::clicked, this, &Invoicer::popLineItem);
 }
 
 Invoicer::~Invoicer()
@@ -47,15 +48,53 @@ Invoicer::~Invoicer()
     delete ui;
 }
 
+/* Slots */
+
 void Invoicer::quit()
 {
     QCoreApplication::quit();
 }
 
-void Invoicer::addLineItem()
+void Invoicer::pushLineItem()
 {
-    lineItems.push_back(new LineItem());
-    this->lineItemsContainer->layout()->addWidget(lineItems.last()->container);
+    int length = lineItems.length();
+    lineItems.push_back(new LineItem(length));
+    lineItemsContainer->layout()->addWidget(lineItems.last());
+    if (lineItems.length() > 1) {
+        ui->removeLineItemButton->setEnabled(true);
+    }
+}
+
+void Invoicer::popLineItem()
+{
+    if (lineItems.length() > 1) {
+        auto last = lineItems.takeLast();
+        delete last;
+    }
+    if (lineItems.length() == 1) {
+        ui->removeLineItemButton->setEnabled(false);
+    }
+}
+
+void Invoicer::removeSelectedItems()
+{
+    auto unselected = QVector<LineItem*>();
+    auto selected = QVector<LineItem*>();
+    int u_idx = 0;
+    foreach(auto lineItem, lineItems) {
+        if (lineItem->is_selected()) {
+            selected.push_back(lineItem);
+        } else {
+            lineItem->updateIndex(u_idx);
+            u_idx += 1;
+            unselected.push_back(lineItem);
+        }
+    }
+    lineItems = unselected;
+    if (lineItems.length()  == 1) {
+        ui->removeLineItemButton->setEnabled(false);
+        ui->removeSelectedButton->setEnabled(false);
+    }
 }
 
 void Invoicer::buildPDF() {

@@ -7,15 +7,15 @@ namespace Model {
         city = new QString("");
         state = new QString("");
         zip = 0;
-        phone = new QString("");
+        phone = 0;
         email = new QString("");
         country = new QString("");
     }
-    
+
     ContactInfo::ContactInfo(QString* name_init,
                              QString* street_init, QString* city_init,
-                             QString* state_init, int zip_init,
-                             int phone_init, QString* email_init)
+                             QString* state_init, unsigned int zip_init,
+                             unsigned long int phone_init, QString* email_init)
     {
         name = name_init;
         street = street_init;
@@ -33,8 +33,8 @@ namespace Model {
         delete street;
         delete city;
         delete state;
-        delete phone;
         delete email;
         delete country;
     }
 }
+ 

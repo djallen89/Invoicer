@@ -3,7 +3,7 @@
 
 #include <QString>
 #include <QVector>
-#include "model/contactinfo.h"
+#include "contactinfo.h"
 #include "itemcatalog.h"
 
 namespace Model {
@@ -12,18 +12,17 @@ namespace Model {
     public:
         DocModel();
         ~DocModel();
-        void updateYourInfo();
-        void updateClientInfo();
-        void updateInvoiceNumber();
-        void updateCurrency();
-        void populateCatalog();
-        void updateTotal();
+        void updateInvoiceNumber(QString *newNumber);
+        void updateCurrency(QString *newCurrency);
+        // void populateCatalog(); args tbd
+        // void updateTotal(); tbd
 
-    private:
         ContactInfo *yourInfo;
         ContactInfo *clientInfo;
-        QString *invoiceNumber;
+
+    private:
         ItemCatalog *catalog;
+        QString *invoiceNumber;
         QString *currency;
         int total;
     };

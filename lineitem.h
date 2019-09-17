@@ -8,27 +8,52 @@
 #include <QTextEdit>
 #include <QSize>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <cstdint>
+#include <climits>
+
+const double MAXHOURS = 24.0;
+const double MINHOURS = 0.02; // roughly one minute
+
+const double MINQ = 1;
+const double MAXQ = static_cast<double>(INT_MAX);
+
+const double MINCOST = static_cast<double>(INT_MIN);
+const double MAXCOST = static_cast<double>(INT_MAX);
 
 class LineItem : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit LineItem(QWidget *parent = nullptr);
+    explicit LineItem(int idx, QWidget *parent = nullptr);
     ~LineItem();
-    QWidget *container;
     QSize sizeHint() const;
-
-private slots:
+    bool is_selected() const;
+    double quantify() const;
+    double rate() const;
+    double subtotal() const;
+                           
+public slots:
+    void changeToHours();
+    void changeToProduct();
+    void calculateSubtotal();
+    void updateIndex(int idx);
 
 private:
-    QLabel *dateLabel;
-    QLabel *hoursLabel;
-    QLabel *descriptionLabel;
-    QDateEdit *date;
-    QLineEdit *hours;
-    QTextEdit *description;
+    int index;
     QCheckBox *selected;
+    QLabel *dateLabel;
+    QDateEdit *date;
+    QRadioButton *timeSelect;
+    QRadioButton *productSelect;
+    QLabel *quantityLabel;
+    QLineEdit *quantity;
+    QLabel *unitCostLabel;
+    QLineEdit *unitCost;
+    QLabel *subtotalLabel;
+    QLabel *descriptionLabel;
+    QTextEdit *description;
 };
 
 #endif // LINEITEM_H

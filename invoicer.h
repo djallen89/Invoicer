@@ -16,12 +16,14 @@ class Invoicer : public QMainWindow
 
 public:
     explicit Invoicer(QWidget *parent = nullptr);
-    void buildPDF();
     ~Invoicer();
+    void buildPDF();
                
 private slots:
     void quit();
-    void addLineItem();
+    void pushLineItem();
+    void popLineItem();
+    void removeSelectedItems();
     
 private:
     Ui::Invoicer *ui;

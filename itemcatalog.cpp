@@ -5,4 +5,8 @@ namespace Model {
     {
 
     }
+
+    ItemCatalog::~ItemCatalog()
+    {
+    }
 }
