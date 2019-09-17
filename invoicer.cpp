@@ -121,6 +121,18 @@ void Invoicer::removeSelectedItems()
     }
 }
 
+/* Public Member Functions */
+
+void Invoicer::read(const QJsonObject &json)
+{
+    
+}
+
+void Invoicer::write(const QJsonObject &json) const
+{
+    json["invoice_number"] = ui->invoiceNumberLineEdit->text();
+}
+
 void Invoicer::buildPDF() {
     //auto pdf_text = new PDFBuilder();
     //pdf_text.simple_output();
