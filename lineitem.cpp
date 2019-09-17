@@ -60,6 +60,7 @@ LineItem::LineItem(int idx, QWidget *parent) :
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     setMinimumSize(600, 200);
 
+    connect(selected, &QCheckBox::toggled, this, &LineItem::setSelected);
     connect(quantity, &QLineEdit::editingFinished, this, &LineItem::calculateSubtotal);
     connect(unitCost, &QLineEdit::editingFinished, this, &LineItem::calculateSubtotal);
     connect(timeSelect, &QRadioButton::toggled, this, &LineItem::changeToHours);
@@ -86,7 +87,15 @@ LineItem::~LineItem()
     delete productSelect;
 }
 
+/* Signals */
+/*
+*/
+
 /* Slots */
+void LineItem::setSelected() {
+    emit selectedChanged(selected->isChecked());
+}
+
 void LineItem::changeToHours()
 {
     quantityLabel->setText("Hours");

@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QVector>
+#include <QString>
+#include <QJsonObject>
 #include "addressinfoform.h"
 #include "lineitem.h"
 
@@ -17,16 +19,19 @@ class Invoicer : public QMainWindow
 public:
     explicit Invoicer(QWidget *parent = nullptr);
     ~Invoicer();
+    void read(const QJsonObject &json);
+    void write(const QJsonObject &json) const;
     void buildPDF();
                
 private slots:
-    void quit();
+    void setSelectedCount(bool s);
     void pushLineItem();
     void popLineItem();
     void removeSelectedItems();
     
 private:
     Ui::Invoicer *ui;
+    int selectedCount;
     AddressInfoForm *yourInfo;
     AddressInfoForm *clientInfo;
     QVector<LineItem*> lineItems;

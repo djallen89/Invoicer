@@ -59,7 +59,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="formInfoTab">
          <property name="sizePolicy">
@@ -102,7 +102,53 @@
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>200</width>
+                  <width>400</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="currencyNameLabel">
+                <property name="text">
+                 <string>Currency Name</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="currencyNameLineEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>400</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="currencySymbolLabel">
+                <property name="text">
+                 <string>Currency Symbol</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="currencySymbolLineEdit">
+                <property name="maximumSize">
+                 <size>
+                  <width>400</width>
                   <height>16777215</height>
                  </size>
                 </property>

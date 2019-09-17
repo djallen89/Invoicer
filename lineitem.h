@@ -33,8 +33,12 @@ public:
     double quantify() const;
     double rate() const;
     double subtotal() const;
+
+signals:
+    void selectedChanged(bool s);
                            
 public slots:
+    void setSelected();
     void changeToHours();
     void changeToProduct();
     void calculateSubtotal();
