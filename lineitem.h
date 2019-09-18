@@ -9,6 +9,7 @@
 #include <QSize>
 #include <QCheckBox>
 #include <QRadioButton>
+#include <QJsonObject>
 #include <cstdint>
 #include <climits>
 
@@ -38,6 +39,8 @@ signals:
     void selectedChanged(bool s);
                            
 public slots:
+    void read(const QJsonObject &json);
+    void write(QJsonObject &json) const;
     void setSelected();
     void changeToHours();
     void changeToProduct();

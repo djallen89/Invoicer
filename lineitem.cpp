@@ -117,6 +117,25 @@ void LineItem::calculateSubtotal()
 }
 
 /* Public Methods */
+
+void LineItem::read(const QJsonObject &json)
+{
+    
+}
+
+void LineItem::write(QJsonObject &json) const
+{
+    json["index"] = index;
+    json["selected"] = is_selected();
+    json["date"] = date->date().toString();
+    json["time_selected"] = timeSelect->isChecked();
+    json["product_selected"] = productSelect->isChecked();
+    json["quantity"] = quantify();
+    json["unit_cost"] = rate();
+    json["subtotal"] = subtotal();
+    json["description"] = description->toPlainText();
+}
+
 bool LineItem::is_selected() const
 {
     return selected->isChecked();
@@ -128,6 +147,10 @@ double LineItem::quantify() const {
 
 double LineItem::rate() const {
     return unitCost->text().toDouble();
+}
+
+double LineItem::subtotal() const {
+    return subtotalLabel->text().toDouble();
 }
 
 void LineItem::updateIndex(int idx) {

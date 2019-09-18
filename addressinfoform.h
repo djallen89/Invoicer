@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QString>
+#include <QJsonObject>
 
 class AddressInfoForm : public QGroupBox
 {
@@ -14,6 +15,8 @@ public:
     explicit AddressInfoForm(QString entityName, QWidget *parent = nullptr);
     ~AddressInfoForm();
     QFrame *container;
+    void read(const QJsonObject &json);
+    void write(QJsonObject &json) const;
 
 private:
     QLineEdit *name;

@@ -39,3 +39,20 @@ AddressInfoForm::~AddressInfoForm()
     delete email;
     delete container;
 }
+
+
+void AddressInfoForm::read(const QJsonObject &json)
+{
+    
+}
+void AddressInfoForm::write(QJsonObject &json) const
+{
+    json["name"] = name->text();
+    json["street_address"] = streetAddress->text();
+    json["city"] = city->text();
+    json["state"] = state->text();
+    json["zip"] = zip->text();
+    json["phone"] = phone->text();
+    json["email"] = email->text();
+
+}

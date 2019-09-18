@@ -4,6 +4,9 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QStringLiteral>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 Invoicer::Invoicer(QWidget *parent) :
     QMainWindow(parent),
@@ -33,6 +36,7 @@ Invoicer::Invoicer(QWidget *parent) :
     // connect actions
     //connect(ui->actionQuit, &QAction::triggered, this, &Invoicer::quit);
     connect(ui->actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+    connect(ui->actionSave, &QAction::triggered, this, &Invoicer::save);
 
     // connect buttons
     connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::pushLineItem);
@@ -53,6 +57,40 @@ Invoicer::~Invoicer()
 }
 
 /* Slots */
+
+void Invoicer::save() const
+{
+    /*
+    QFile saveFile(saveFormat == Json
+		   ? QStringLiteral("save.json")
+		   : QStringLiteral("save.dat"));
+
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+        return false;
+    }
+
+    QJsonObject gameObject;
+    write(gameObject);
+    QJsonDocument saveDoc(gameObject);
+    saveFile.write(saveFormat == Json
+		   ? saveDoc.toJson()
+		   : saveDoc.toBinaryData());
+    */
+    QFile saveFile(QStringLiteral("/tmp/testSave.json"));
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+        return;
+    }
+
+    //auto json = QJsonObject();
+    QJsonObject invoiceObject;
+    write(invoiceObject);
+    QJsonDocument saveDoc(invoiceObject);
+    saveFile.write(saveDoc.toJson());
+    return;
+    //cout << json << "\n";
+}
 
 void Invoicer::setSelectedCount(bool s)
 {
@@ -128,9 +166,28 @@ void Invoicer::read(const QJsonObject &json)
     
 }
 
-void Invoicer::write(const QJsonObject &json) const
+void Invoicer::write(QJsonObject &json) const
 {
     json["invoice_number"] = ui->invoiceNumberLineEdit->text();
+    json["currency_name"] = ui->currencyNameLineEdit->text();
+    json["currency_symbol"] = ui->currencySymbolLineEdit->text();
+    json["selected_count"] = selectedCount;
+
+    QJsonObject yourInfoObject;
+    yourInfo->write(yourInfoObject);
+    json["your_info"] = yourInfoObject;
+
+    QJsonObject clientInfoObject;
+    clientInfo->write(clientInfoObject);
+    json["client_info"] = clientInfoObject;
+
+    QJsonArray lineItemsArray;
+    foreach(auto lineItem, lineItems) {
+	QJsonObject lineItemObject;
+	lineItem->write(lineItemObject);
+	lineItemsArray.append(lineItemObject);
+    }
+    json["line_items"] = lineItemsArray;
 }
 
 void Invoicer::buildPDF() {
