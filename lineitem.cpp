@@ -99,12 +99,14 @@ void LineItem::setSelected() {
 void LineItem::changeToHours()
 {
     quantityLabel->setText("Hours");
+    unitCostLabel->setText("Rate");
     quantity->setValidator(new QDoubleValidator(MINHOURS, MAXHOURS, 2, this));
 }
 
 void LineItem::changeToProduct()
 {
     quantityLabel->setText("Quantity");
+    unitCostLabel->setText("Unit Price");
     quantity->setValidator(new QDoubleValidator(MINQ, MAXQ, 0, this));
 }
 

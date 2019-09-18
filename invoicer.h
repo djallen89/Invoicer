@@ -25,14 +25,17 @@ public:
     void buildPDF();
                
 private slots:
-    void save() const;
+    void save(); // can't be const because of the need to set fileName initially
+    void open();
     void setSelectedCount(bool s);
     void pushLineItem();
     void popLineItem();
     void removeSelectedItems();
     
 private:
+    void setFileName();
     Ui::Invoicer *ui;
+    QString *fileName;
     int selectedCount;
     AddressInfoForm *yourInfo;
     AddressInfoForm *clientInfo;

@@ -5,8 +5,11 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QStringLiteral>
+#include <QFileDialog>
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <math.h>
 
 Invoicer::Invoicer(QWidget *parent) :
     QMainWindow(parent),
@@ -16,6 +19,8 @@ Invoicer::Invoicer(QWidget *parent) :
     lineItems(QVector<LineItem*>()),
     lineItemsContainer(new QWidget)
 {
+    fileName = new QString();
+    
     // set up base UI elements
     ui->setupUi(this);
 
@@ -46,6 +51,7 @@ Invoicer::Invoicer(QWidget *parent) :
 
 Invoicer::~Invoicer()
 {
+    delete fileName;
     delete yourInfo;
     delete clientInfo;
     foreach (auto lineItem, lineItems) {
@@ -58,38 +64,31 @@ Invoicer::~Invoicer()
 
 /* Slots */
 
-void Invoicer::save() const
+void Invoicer::save() 
 {
-    /*
-    QFile saveFile(saveFormat == Json
-		   ? QStringLiteral("save.json")
-		   : QStringLiteral("save.dat"));
-
-    if (!saveFile.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open save file.");
-        return false;
+    if (fileName->isNull()) {
+        setFileName();
     }
 
-    QJsonObject gameObject;
-    write(gameObject);
-    QJsonDocument saveDoc(gameObject);
-    saveFile.write(saveFormat == Json
-		   ? saveDoc.toJson()
-		   : saveDoc.toBinaryData());
-    */
-    QFile saveFile(QStringLiteral("/tmp/testSave.json"));
+    if (fileName->isNull()) {
+        return;
+    }
+    
+    QFile saveFile(*fileName);
     if (!saveFile.open(QIODevice::WriteOnly)) {
         qWarning("Couldn't open save file.");
         return;
     }
 
-    //auto json = QJsonObject();
     QJsonObject invoiceObject;
     write(invoiceObject);
     QJsonDocument saveDoc(invoiceObject);
     saveFile.write(saveDoc.toJson());
     return;
-    //cout << json << "\n";
+}
+
+void Invoicer::open()
+{
 }
 
 void Invoicer::setSelectedCount(bool s)
@@ -163,7 +162,70 @@ void Invoicer::removeSelectedItems()
 
 void Invoicer::read(const QJsonObject &json)
 {
-    
+    if (!json.contains("invoice_number") ||
+        !json.contains("currency_name") ||
+        !json.contains("currency_symbol") ||
+        !json.contains("selected_count") ||
+        !json.contains("your_info") ||
+        !json.contains("client_info") ||
+        !json.contains("line_items")
+        )
+    {
+        qWarning("Invalid save file");
+        return;
+    }
+
+    auto invoice_number = json["invoice_number"];
+    auto currency_name = json["currency_name"];
+    auto currency_symbol = json["currency_symbol"];
+    auto selected_count = json["selected_count"];
+    auto your_info = json["your_info"];
+    auto client_info = json["client_info"];
+    auto line_items = json["line_items"];
+
+
+    if (!invoice_number.isString() ||
+        !currency_name.isString() ||
+        !currency_symbol.isString() ||
+        !selected_count.isDouble() ||
+        !your_info.isObject() ||
+        !client_info.isObject() || 
+        !line_items.isArray()
+        )
+    {
+        qWarning("Invalid values found in save file.");
+        return;
+    }
+
+    ui->invoiceNumberLineEdit->setText(invoice_number.toString());
+    ui->currencyNameLineEdit->setText(currency_name.toString());
+    ui->currencySymbolLineEdit->setText(currency_symbol.toString());
+    selectedCount = static_cast<int>(round(selected_count.toDouble()));
+    yourInfo->read(your_info.toObject());
+    clientInfo->read(client_info.toObject());
+
+    foreach(auto lineItem, line_items.toArray()) {
+        // do stuff
+    }
+/*
+    auto inv_n = json[ = auto inv_n = json["invoice_number"]
+    if (inv_n.isString()) {
+        //ui->invoiceNumberLineEdit->setText(inv_n.toString());
+    } else {
+        qWarning("Invalid Invoice Number");
+        return;
+    }
+
+    auto sc = json["selected_count"];
+    if (inv_n.isString()) {
+        ui->invoiceNumberLineEdit->setText(inv_n.toString());
+    }
+    */
+    /*
+    if (json.contains("invoice_number") && json["invoice_number"].isString()) {
+        ui->invoiceNumberLineEdit->setText(json["invoice_number"]);
+    }
+    */
 }
 
 void Invoicer::write(QJsonObject &json) const
@@ -193,4 +255,15 @@ void Invoicer::write(QJsonObject &json) const
 void Invoicer::buildPDF() {
     //auto pdf_text = new PDFBuilder();
     //pdf_text.simple_output();
+}
+
+/* Private methods */
+
+void Invoicer::setFileName()
+{
+    *fileName = QFileDialog::getSaveFileName(
+        this,
+        "Save Invoice",
+        QDir::homePath(),
+        "JSON file (*.json)");
 }
