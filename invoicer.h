@@ -20,12 +20,14 @@ class Invoicer : public QMainWindow
 public:
     explicit Invoicer(QWidget *parent = nullptr);
     ~Invoicer();
-    void read(const QJsonObject &json);
+    bool read(const QJsonObject &json);
     void write(QJsonObject &json) const;
     void buildPDF();
                
 private slots:
-    void save(); // can't be const because of the need to set fileName initially
+    void setSaveFile();
+    void save() const;
+    void saveAs();
     void open();
     void setSelectedCount(bool s);
     void pushLineItem();

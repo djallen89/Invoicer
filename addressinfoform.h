@@ -15,7 +15,7 @@ public:
     explicit AddressInfoForm(QString entityName, QWidget *parent = nullptr);
     ~AddressInfoForm();
     QFrame *container;
-    void read(const QJsonObject &json);
+    bool read(const QJsonObject &json);
     void write(QJsonObject &json) const;
 
 private:

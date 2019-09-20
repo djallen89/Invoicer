@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QByteArray>
 #include <math.h>
 
 Invoicer::Invoicer(QWidget *parent) :
@@ -41,7 +42,10 @@ Invoicer::Invoicer(QWidget *parent) :
     // connect actions
     //connect(ui->actionQuit, &QAction::triggered, this, &Invoicer::quit);
     connect(ui->actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+    connect(ui->actionSave, &QAction::triggered, this, &Invoicer::setSaveFile);
     connect(ui->actionSave, &QAction::triggered, this, &Invoicer::save);
+    connect(ui->actionSave_As, &QAction::triggered, this, &Invoicer::saveAs);
+    connect(ui->actionOpen, &QAction::triggered, this, &Invoicer::open);
 
     // connect buttons
     connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::pushLineItem);
@@ -64,12 +68,15 @@ Invoicer::~Invoicer()
 
 /* Slots */
 
-void Invoicer::save() 
+void Invoicer::setSaveFile()
 {
     if (fileName->isNull()) {
         setFileName();
     }
+}
 
+void Invoicer::save() const
+{
     if (fileName->isNull()) {
         return;
     }
@@ -87,8 +94,36 @@ void Invoicer::save()
     return;
 }
 
+void Invoicer::saveAs()
+{
+    setFileName();
+    save();
+}
+
 void Invoicer::open()
 {
+    QString newFile = QFileDialog::getOpenFileName(
+        this,
+        "Open Invoice",
+        QDir::homePath(),
+        "JSON file (*.json");
+
+    if (newFile.isNull()) {
+        return;
+    }
+
+    QFile loadFile(newFile);
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+        qWarning("Could not open file.");
+        return;
+    }
+
+    QByteArray invoiceObject = loadFile.readAll();
+
+    QJsonDocument loadDoc = QJsonDocument::fromJson(invoiceObject);
+    if (read(loadDoc.object())) {
+        *fileName = newFile;
+    }
 }
 
 void Invoicer::setSelectedCount(bool s)
@@ -149,7 +184,7 @@ void Invoicer::removeSelectedItems()
             unselected.push_back(lineItem);
         }
     }
-    delete lineItemsContainer->layout();
+    delete oldLayout;
     lineItemsContainer->setLayout(linesLayout);
     lineItems = unselected;
     if (lineItems.length()  == 1) {
@@ -160,8 +195,10 @@ void Invoicer::removeSelectedItems()
 
 /* Public Member Functions */
 
-void Invoicer::read(const QJsonObject &json)
+bool Invoicer::read(const QJsonObject &json)
 {
+    /* Check validity of document */
+    
     if (!json.contains("invoice_number") ||
         !json.contains("currency_name") ||
         !json.contains("currency_symbol") ||
@@ -172,7 +209,7 @@ void Invoicer::read(const QJsonObject &json)
         )
     {
         qWarning("Invalid save file");
-        return;
+        return false;
     }
 
     auto invoice_number = json["invoice_number"];
@@ -183,7 +220,6 @@ void Invoicer::read(const QJsonObject &json)
     auto client_info = json["client_info"];
     auto line_items = json["line_items"];
 
-
     if (!invoice_number.isString() ||
         !currency_name.isString() ||
         !currency_symbol.isString() ||
@@ -193,39 +229,66 @@ void Invoicer::read(const QJsonObject &json)
         !line_items.isArray()
         )
     {
-        qWarning("Invalid values found in save file.");
-        return;
+        qWarning("Invalid types found in save file.");
+        return false;
     }
+
+    /* end check of validity of document */
+
+    /* create new members 
+     * check during their read function for validity */
+    auto newYourInfo = new AddressInfoForm(QString("Your Information"));
+    auto newClientInfo = new AddressInfoForm(QString("Client Information"));
+
+    if (!newYourInfo->read(your_info.toObject())) {
+        qWarning("Invalid address information.");
+        return false;
+    }
+    
+    if (!newClientInfo->read(client_info.toObject())) {
+        qWarning("Invalid client address information.");
+        return false;
+    }
+
+    auto newLineItems = QVector<LineItem*>();
+    auto new_line_items_arr = line_items.toArray();
+    auto newLineItemsLayout = new QVBoxLayout();
+    for (int i = 0; i < new_line_items_arr.size(); ++i) {
+        auto lineItem = new LineItem(i);
+        auto lineItemObject = new_line_items_arr[i].toObject();
+        if (!lineItem->read(lineItemObject)) {
+            // qWarning("Invalid Line Item.");
+            return false;
+        }
+        newLineItemsLayout->addWidget(lineItem);
+        newLineItems.push_back(lineItem);        
+    }
+
+    /* Everything checks out */
 
     ui->invoiceNumberLineEdit->setText(invoice_number.toString());
     ui->currencyNameLineEdit->setText(currency_name.toString());
     ui->currencySymbolLineEdit->setText(currency_symbol.toString());
     selectedCount = static_cast<int>(round(selected_count.toDouble()));
-    yourInfo->read(your_info.toObject());
-    clientInfo->read(client_info.toObject());
+    
+    delete yourInfo;
+    yourInfo = newYourInfo;
+    delete clientInfo;
+    clientInfo = newClientInfo;
 
-    foreach(auto lineItem, line_items.toArray()) {
-        // do stuff
+    auto layout = lineItemsContainer->layout();
+    foreach(auto oldLineItem, lineItems) {
+        layout->removeWidget(oldLineItem);
+        delete oldLineItem;
     }
-/*
-    auto inv_n = json[ = auto inv_n = json["invoice_number"]
-    if (inv_n.isString()) {
-        //ui->invoiceNumberLineEdit->setText(inv_n.toString());
-    } else {
-        qWarning("Invalid Invoice Number");
-        return;
+    lineItems = newLineItems;
+    foreach(auto lineItem, lineItems) {
+        connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
     }
+    delete lineItemsContainer->layout();
+    lineItemsContainer->setLayout(newLineItemsLayout);
 
-    auto sc = json["selected_count"];
-    if (inv_n.isString()) {
-        ui->invoiceNumberLineEdit->setText(inv_n.toString());
-    }
-    */
-    /*
-    if (json.contains("invoice_number") && json["invoice_number"].isString()) {
-        ui->invoiceNumberLineEdit->setText(json["invoice_number"]);
-    }
-    */
+    return true;
 }
 
 void Invoicer::write(QJsonObject &json) const

@@ -39,7 +39,7 @@ signals:
     void selectedChanged(bool s);
                            
 public slots:
-    void read(const QJsonObject &json);
+    bool read(const QJsonObject &json);
     void write(QJsonObject &json) const;
     void setSelected();
     void changeToHours();

@@ -88,8 +88,7 @@ LineItem::~LineItem()
 }
 
 /* Signals */
-/*
-*/
+
 
 /* Slots */
 void LineItem::setSelected() {
@@ -120,9 +119,58 @@ void LineItem::calculateSubtotal()
 
 /* Public Methods */
 
-void LineItem::read(const QJsonObject &json)
+bool LineItem::read(const QJsonObject &json)
 {
+    if (!json.contains("index") ||
+        !json.contains("selected") || 
+        !json.contains("date") || 
+        !json.contains("time_selected") || 
+        !json.contains("product_selected") || 
+        !json.contains("quantity") || 
+        !json.contains("unit_cost") ||
+        !json.contains("subtotal") || 
+        !json.contains("description")
+        )
+    {
+        qWarning("Invalid line item");
+        return false;
+    }
+
+    if (!json["index"].isDouble() ||
+        !json["selected"].isBool() ||
+        !json["date"].isString() ||
+        !json["time_selected"].isBool() ||
+        !json["product_selected"].isBool() ||
+        !json["quantity"].isDouble() ||
+        !json["unit_cost"].isDouble() ||
+        !json["subtotal"].isDouble() ||
+        !json["description"].isString()
+        )
+    {
+        qWarning("Invalid line item types");
+        return false;
+    }
+
+    bool time_s = json["time_selected"].toBool();
+    bool product_s = json["product_selected"].toBool();
+
+    if (time_s != product_s) {
+        timeSelect->setChecked(time_s);
+        productSelect->setChecked(product_s);
+    } else {
+        qWarning("Invalid selection for time or product; must select one and only one."); 
+        return false;
+    }
     
+    index = static_cast<int>(json["index"].toDouble());
+    selected->setChecked(json["selected"].toBool());
+    date->setDate(QDate::fromString(json["date"].toString()));
+    quantity->setText(QString::number(json["quantity"].toDouble()));
+    unitCost->setText(QString::number(json["unit_cost"].toDouble()));
+    subtotalLabel->setText(QString::number(json["subtotal"].toDouble()));
+    description->setText(json["description"].toString());
+
+    return true;
 }
 
 void LineItem::write(QJsonObject &json) const
