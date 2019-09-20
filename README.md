@@ -1,13 +1,13 @@
 # Invoicer
 
-Invoicer is a simple tool to construct invoices. 
+Invoicer is a simple tool to construct invoices. Invoices are saved in
+JSON format.
 
 ## Planned Features:
 * Support for invoices billing by hour, billing by item, and a mixture
   of the two.
 * Create Invoices by inputting information about yourself, the client,
   billing rates and line items.
-* Save and open invoices using JSON
 * Export to PDF, TeX and Markdown
 * Preview invoices in PDF format
 <!--
