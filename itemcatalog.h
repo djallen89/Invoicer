@@ -17,8 +17,11 @@ namespace Model {
     private:
         void recalulate_total();
         QVector<QDate> dates;
-        QVector<double> hours;
-        QVector<double> values;
+        QVector<bool> isTime;
+        QVector<double> quantity;
+        QVector<double> unitCost;
+        QVector<double> subtotal;
+        QVector<QString*> description;
     };
 }
 
