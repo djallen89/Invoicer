@@ -4,6 +4,7 @@
 #include <QString>
 #include <QSizePolicy>
 #include <QDoubleValidator>
+#include <QStringBuilder>
 
 LineItem::LineItem(int idx, QWidget *parent) :
     QWidget(parent)
@@ -115,6 +116,7 @@ void LineItem::calculateSubtotal()
     auto r = rate();
     auto subtotal = QString::number(q * r, 'f', 2);
     subtotalLabel->setText("Subtotal: " + subtotal);
+    emit subtotalChanged();
 }
 
 /* Public Methods */
@@ -128,7 +130,6 @@ bool LineItem::read(const QJsonObject &json)
         !json.contains("product_selected") || 
         !json.contains("quantity") || 
         !json.contains("unit_cost") ||
-        !json.contains("subtotal") || 
         !json.contains("description")
         )
     {
@@ -143,7 +144,6 @@ bool LineItem::read(const QJsonObject &json)
         !json["product_selected"].isBool() ||
         !json["quantity"].isDouble() ||
         !json["unit_cost"].isDouble() ||
-        !json["subtotal"].isDouble() ||
         !json["description"].isString()
         )
     {
@@ -161,13 +161,17 @@ bool LineItem::read(const QJsonObject &json)
         qWarning("Invalid selection for time or product; must select one and only one."); 
         return false;
     }
+
+    double q = json["quantity"].toDouble();
+    double r = json["unit_cost"].toDouble();
+    double st = q * r;
     
     index = static_cast<int>(json["index"].toDouble());
     selected->setChecked(json["selected"].toBool());
     date->setDate(QDate::fromString(json["date"].toString()));
-    quantity->setText(QString::number(json["quantity"].toDouble()));
-    unitCost->setText(QString::number(json["unit_cost"].toDouble()));
-    subtotalLabel->setText(QString::number(json["subtotal"].toDouble()));
+    quantity->setText(QString::number(q));
+    unitCost->setText(QString::number(r));
+    subtotalLabel->setText("Subtotal: " + QString::number(st, 'f', 2));
     description->setText(json["description"].toString());
 
     return true;
@@ -182,7 +186,6 @@ void LineItem::write(QJsonObject &json) const
     json["product_selected"] = productSelect->isChecked();
     json["quantity"] = quantify();
     json["unit_cost"] = rate();
-    json["subtotal"] = subtotal();
     json["description"] = description->toPlainText();
 }
 
@@ -206,4 +209,25 @@ double LineItem::subtotal() const {
 void LineItem::updateIndex(int idx) {
     index = idx;
     selected->setText(QString::number(idx + 1));
+}
+
+QString LineItem::buildLatex() const
+{
+    //auto table_header = "Date & Hours/Product & Quantity & Rate/Cost & Description""\\""\\""\\hline\n";
+    auto amp = QString(" & ");
+    auto desc_text = sanitizeDescription();
+    //auto desc_text = description->toPlainText().replace(QString("\n"), QString("\n\n"));
+    auto h_or_p = timeSelect->isChecked() ? QString("& H &") : QString("& P &");
+    return date->date().toString("  MM/dd") % amp % h_or_p % amp %  quantity->text()
+        % amp % unitCost->text() % amp % "\n  "
+        % desc_text % QString("\\""\\""\\hline\n\n");
+}
+
+QString LineItem::sanitizeDescription() const
+{
+    auto desc_text = description->toPlainText();
+    desc_text = desc_text.replace(QString("\\"), QString(""));
+    desc_text = desc_text.replace(QRegExp("([&#\\$%_{}\\^])"), "\\1");
+    desc_text = desc_text.replace(QString("\n"), QString("\n\n"));
+    return desc_text;
 }

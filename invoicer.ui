@@ -238,6 +238,11 @@
               </item>
               <item>
                <widget class="QPushButton" name="addLineItemButton">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Add Item</string>
                 </property>
@@ -261,6 +266,11 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Remove Last Item</string>
                 </property>
@@ -283,6 +293,11 @@
                <widget class="QPushButton" name="removeSelectedButton">
                 <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
                 </property>
                 <property name="text">
                  <string>Remove Selected</string>
@@ -321,6 +336,11 @@
               </item>
               <item>
                <widget class="QLabel" name="totalLabel">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Total</string>
                 </property>
@@ -370,6 +390,11 @@
         </item>
         <item>
          <widget class="QPushButton" name="buildPDFButton">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Build PDF</string>
           </property>
@@ -428,7 +453,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionDocument_Directory"/>
+    <addaction name="actionOptions"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
@@ -485,7 +510,12 @@
   </action>
   <action name="actionDocument_Directory">
    <property name="text">
-    <string>Document Directory</string>
+    <string>Document Director</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
    </property>
   </action>
  </widget>

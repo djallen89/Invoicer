@@ -4,7 +4,9 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QMessageBox>
 #include <QStringLiteral>
+#include <QStringBuilder>
 #include <QFileDialog>
 #include <QDir>
 #include <QJsonDocument>
@@ -14,12 +16,13 @@
 
 Invoicer::Invoicer(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::Invoicer),
-    yourInfo(new AddressInfoForm(QString("Your Information"))),
-    clientInfo(new AddressInfoForm(QString("Client Information"))),
-    lineItems(QVector<LineItem*>()),
-    lineItemsContainer(new QWidget)
+    ui(new Ui::Invoicer) //,
+    // yourInfo(new AddressInfoForm(QString("Your Information"))),
+    // clientInfo(new AddressInfoForm(QString("Client Information"))),
+    // lineItems(QVector<LineItem*>()),
+    // lineItemsContainer(new QWidget)
 {
+    modified = true;
     fileName = new QString();
     
     // set up base UI elements
@@ -27,13 +30,17 @@ Invoicer::Invoicer(QWidget *parent) :
 
     selectedCount = 0;
 
-    // set up form information  
+    // set up form information
+    yourInfo = new AddressInfoForm(QString("Your Information"));
+    clientInfo = new AddressInfoForm(QString("Client Information"));
     auto formLayout = new QHBoxLayout;
     formLayout->addWidget(yourInfo);
     formLayout->addWidget(clientInfo);
     ui->formInfoContainer->setLayout(formLayout);
 
     // set up line items
+    lineItems = QVector<LineItem*>();
+    lineItemsContainer = new QWidget;
     auto linesLayout = new QVBoxLayout;
     lineItemsContainer->setLayout(linesLayout);
     ui->lineItemsScrollArea->setWidget(lineItemsContainer);
@@ -41,11 +48,13 @@ Invoicer::Invoicer(QWidget *parent) :
 
     // connect actions
     //connect(ui->actionQuit, &QAction::triggered, this, &Invoicer::quit);
-    connect(ui->actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+    connect(ui->actionNew_Invoice, & QAction::triggered, this, &Invoicer::newInvoice);
     connect(ui->actionSave, &QAction::triggered, this, &Invoicer::setSaveFile);
     connect(ui->actionSave, &QAction::triggered, this, &Invoicer::save);
     connect(ui->actionSave_As, &QAction::triggered, this, &Invoicer::saveAs);
     connect(ui->actionOpen, &QAction::triggered, this, &Invoicer::open);
+    connect(ui->actionQuit, &QAction::triggered, this, &QCoreApplication::quit);
+    connect(ui->actionAbout, &QAction::triggered, this, &Invoicer::about);
 
     // connect buttons
     connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::pushLineItem);
@@ -68,6 +77,35 @@ Invoicer::~Invoicer()
 
 /* Slots */
 
+void Invoicer::newInvoice()
+{
+    if (modified) {
+        QMessageBox newConfirm;
+        newConfirm.setText("The current invoice will be discarded.");
+        newConfirm.setInformativeText("Do you want to save your changes?");
+        newConfirm.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        newConfirm.setDefaultButton(QMessageBox::Save);
+        int confirm = newConfirm.exec();
+
+        switch (confirm) {
+        case QMessageBox::Save:
+            setFileName();
+            save();
+            break;
+        case QMessageBox::Discard:
+            // foo
+            break;
+        case QMessageBox::Cancel:
+            return;
+        default:
+            qWarning("An impossible situation has occurred.");
+            return;
+        }
+    }
+
+    setupNewInvoice();
+}
+
 void Invoicer::setSaveFile()
 {
     if (fileName->isNull()) {
@@ -75,7 +113,7 @@ void Invoicer::setSaveFile()
     }
 }
 
-void Invoicer::save() const
+void Invoicer::save()
 {
     if (fileName->isNull()) {
         return;
@@ -91,6 +129,7 @@ void Invoicer::save() const
     write(invoiceObject);
     QJsonDocument saveDoc(invoiceObject);
     saveFile.write(saveDoc.toJson());
+    modified = false;
     return;
 }
 
@@ -106,7 +145,7 @@ void Invoicer::open()
         this,
         "Open Invoice",
         QDir::homePath(),
-        "JSON file (*.json");
+        "JSON (*.json");
 
     if (newFile.isNull()) {
         return;
@@ -124,6 +163,45 @@ void Invoicer::open()
     if (read(loadDoc.object())) {
         *fileName = newFile;
     }
+}
+
+void Invoicer::about()
+{
+    auto title = QString("About Invoicer");
+    QString aboutText(
+        "<h1 style=\"text-align: center\">Invoicer</h1>"
+        "<p>A simple tool to construct invoices.</p>"
+        "<p>Copyright (c) 2019, Dominick Allen</p>"
+        "<p>All rights reserved.</p>"
+        "<p>Redistribution and use in source and binary forms, with or without"
+        "modification, are permitted provided that the following conditions are met:</p>"
+        "<ol>"
+        "<li> Redistributions of source code must retain the above copyright notice, this"
+        "list of conditions and the following disclaimer.</li>"
+        "<li> Redistributions in binary form must reproduce the above copyright notice,"
+        "this list of conditions and the following disclaimer in the documentation"
+        "and/or other materials provided with the distribution.</li>"
+        "</ol>"
+        "<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND"
+        "ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED"
+        "WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE"
+        "DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR"
+        "ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES"
+        "(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;"
+        "LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND"
+        "ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT"
+        "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
+        "SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>"
+        "<p>The views and conclusions contained in the software and documentation are those"
+        "of the authors and should not be interpreted as representing official policies,"
+        "either expressed or implied, of the Invoicer project.</p>");
+
+    QMessageBox::about(this, title, aboutText);
+}
+
+void Invoicer::setModified(bool m)
+{
+    modified = m;
 }
 
 void Invoicer::setSelectedCount(bool s)
@@ -148,7 +226,8 @@ void Invoicer::pushLineItem()
 {
     int length = lineItems.length();
     auto lineItem = new LineItem(length);
-    connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
+    //connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
+    connectLineItemSignals(lineItem);
     lineItems.push_back(lineItem);
     lineItemsContainer->layout()->addWidget(lineItems.last());
     if (lineItems.length() > 1) {
@@ -193,7 +272,43 @@ void Invoicer::removeSelectedItems()
     }
 }
 
-/* Public Member Functions */
+void Invoicer::setTotal()
+{
+    double sum = calculateTotal();
+    ui->totalLabel->setText(QString::number(sum, 'f', 2));
+}
+
+/* Public Methods */
+
+QString Invoicer::getInvoiceNumber() const
+{
+    return ui->invoiceNumberLineEdit->text();
+}
+
+QString Invoicer::getCurrencyName() const
+{
+    return ui->currencyNameLineEdit->text();
+}
+
+QString Invoicer::getCurrencySymbol() const
+{
+    return ui->currencySymbolLineEdit->text();
+}
+
+void Invoicer::setInvoiceNumber(QString n)
+{
+    ui->invoiceNumberLineEdit->setText(n);
+}
+
+void Invoicer::setCurrencyName(QString cn)
+{
+    ui->currencyNameLineEdit->setText(cn);
+}
+
+void Invoicer::setCurrencySymbol(QString cs)
+{
+    ui->currencySymbolLineEdit->setText(cs);
+}
 
 bool Invoicer::read(const QJsonObject &json)
 {
@@ -266,15 +381,23 @@ bool Invoicer::read(const QJsonObject &json)
 
     /* Everything checks out */
 
-    ui->invoiceNumberLineEdit->setText(invoice_number.toString());
-    ui->currencyNameLineEdit->setText(currency_name.toString());
-    ui->currencySymbolLineEdit->setText(currency_symbol.toString());
+    //ui->invoiceNumberLineEdit->setText(
+    setInvoiceNumber(invoice_number.toString());
+    //ui->currencyNameLineEdit->setText(currency_name.toString());
+    setCurrencyName(currency_name.toString());
+    //ui->currencySymbolLineEdit->setText(
+    setCurrencySymbol(currency_symbol.toString());
     selectedCount = static_cast<int>(round(selected_count.toDouble()));
-    
+
+    auto formLayout = ui->formInfoContainer->layout();
+    formLayout->removeWidget(yourInfo);
+    formLayout->removeWidget(clientInfo);
     delete yourInfo;
-    yourInfo = newYourInfo;
     delete clientInfo;
+    yourInfo = newYourInfo;
     clientInfo = newClientInfo;
+    formLayout->addWidget(yourInfo);
+    formLayout->addWidget(clientInfo);
 
     auto layout = lineItemsContainer->layout();
     foreach(auto oldLineItem, lineItems) {
@@ -283,19 +406,22 @@ bool Invoicer::read(const QJsonObject &json)
     }
     lineItems = newLineItems;
     foreach(auto lineItem, lineItems) {
-        connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
+        // connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
+        connectLineItemSignals(lineItem);
     }
     delete lineItemsContainer->layout();
     lineItemsContainer->setLayout(newLineItemsLayout);
+
+    setTotal();
 
     return true;
 }
 
 void Invoicer::write(QJsonObject &json) const
 {
-    json["invoice_number"] = ui->invoiceNumberLineEdit->text();
-    json["currency_name"] = ui->currencyNameLineEdit->text();
-    json["currency_symbol"] = ui->currencySymbolLineEdit->text();
+    json["invoice_number"] = getInvoiceNumber();
+    json["currency_name"] = getCurrencyName();
+    json["currency_symbol"] = getCurrencySymbol();
     json["selected_count"] = selectedCount;
 
     QJsonObject yourInfoObject;
@@ -315,18 +441,106 @@ void Invoicer::write(QJsonObject &json) const
     json["line_items"] = lineItemsArray;
 }
 
-void Invoicer::buildPDF() {
+void Invoicer::buildPDF()
+{
     //auto pdf_text = new PDFBuilder();
     //pdf_text.simple_output();
 }
 
+QString Invoicer::buildLatex() const
+{
+    QString text_doc = QString("");
+    auto header = QString("\\documentclass[12pt, letterpaper]{article}\n"
+                          "\\usepackage[margin=1.0in]{geometry}\n"
+                          "\\usepackage[pdftex,\n"
+                          "pdfauthor={YOUR_NAME},\n"
+                          "pdftitle={Invoice INVOICE_NUMBER},\n"
+                          "pdfproducer={Latex with hyperref},\n"
+                          "pdfcreator={pdflatex}]{hyperref}\n"
+                          "\\usepackage{parskip, longtable, tabu}\n"
+                          "\\begin{document}\n");
+
+    auto your_info_minipage = yourInfo->buildLatex();
+    auto client_info_minipage = clientInfo->buildLatex();
+
+    auto invoice_number_text = QString("Invoice Number: \\#") + getInvoiceNumber() + QString("\n");
+
+    auto table_header = QString("  Date & Hours/Product & Quantity & Rate/Cost & Description""\\""\\""\\hline\n");
+    
+    auto table_begin = QString("  \\begin{longtabu} to 1.0\\textwidth {|l|c|r|r|X[l]|}\\hline\n") 
+        % table_header
+        % QString("  \\endfirsthead\n"
+                  "  \\hline \n\n")
+        % table_header
+        % QString("  \\endhead\n\n");
+
+    auto table_end = QString("\\end{longtabu}\n");
+
+    auto total = QString("\\begin{flushright} \\textbf{Total: ")
+        + ui->totalLabel->text()
+        + QString("}\\end{flushright}\n");
+    auto footer = QString("\\end{document}");
+    
+    text_doc = header % your_info_minipage % client_info_minipage % invoice_number_text;
+    text_doc = text_doc % table_header % table_begin;
+    foreach(auto lineItem, lineItems) {
+        text_doc = text_doc % lineItem->buildLatex();
+        //subtotal += 
+    }
+    text_doc = text_doc
+        % table_end
+        % total
+        % footer;
+
+    return text_doc;
+}
+
 /* Private methods */
+
+void Invoicer::setupNewInvoice()
+{
+    auto infoContainerLayout = ui->formInfoContainer->layout();
+    infoContainerLayout->removeWidget(yourInfo);
+    infoContainerLayout->removeWidget(clientInfo);
+    delete yourInfo;
+    delete clientInfo;
+    yourInfo = new AddressInfoForm(QString("Your Information"));
+    clientInfo = new AddressInfoForm(QString("Client Information"));
+    infoContainerLayout->addWidget(yourInfo);
+    infoContainerLayout->addWidget(clientInfo);
+
+    auto lineLayout = lineItemsContainer->layout();
+    foreach (auto lineItem, lineItems) {
+        lineLayout->removeWidget(lineItem);
+        delete lineItem;
+    }
+    lineItems.clear();
+    pushLineItem();
+
+    ui->totalLabel->setText("Total: " + QString::number(calculateTotal(), 'f', 2));
+}
+
+void Invoicer::connectLineItemSignals(LineItem* lineItem)
+{
+    connect(lineItem, &LineItem::selectedChanged, this, &Invoicer::setSelectedCount);
+    connect(lineItem, &LineItem::subtotalChanged, this, &Invoicer::setTotal);
+}
 
 void Invoicer::setFileName()
 {
     *fileName = QFileDialog::getSaveFileName(
         this,
         "Save Invoice",
-        QDir::homePath(),
-        "JSON file (*.json)");
+        QDir::homePath() % "/" % getInvoiceNumber() % ".json",
+        "JSON (*.json)");
+}
+
+double Invoicer::calculateTotal()
+{
+    double sum = 0.0;
+    foreach(auto lineItem, lineItems)
+    {
+        sum += lineItem->quantify() * lineItem->rate();
+    }
+    return sum;
 }

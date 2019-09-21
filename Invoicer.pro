@@ -25,23 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        contactinfo.cpp \
-        docmodel.cpp \
-        itemcatalog.cpp \
         addressinfoform.cpp \
         lineitem.cpp \
         main.cpp \
-        invoicer.cpp \
-        pdfbuilder.cpp
+        invoicer.cpp
 
 HEADERS += \
-        contactinfo.h \
-        docmodel.h \
-        itemcatalog.h \
         addressinfoform.h \
         invoicer.h \
-        lineitem.h \
-        pdfbuilder.h
+        lineitem.h
 
 FORMS += \
         invoicer.ui

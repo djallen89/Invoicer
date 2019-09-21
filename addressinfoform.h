@@ -14,9 +14,16 @@ class AddressInfoForm : public QGroupBox
 public:
     explicit AddressInfoForm(QString entityName, QWidget *parent = nullptr);
     ~AddressInfoForm();
-    QFrame *container;
+    QString getName() const;
+    QString getAddress() const;
+    QString getCity() const;
+    QString getState() const;
+    QString getZip() const;
+    QString getPhone() const;
+    QString getEmail() const;
     bool read(const QJsonObject &json);
     void write(QJsonObject &json) const;
+    QString buildLatex() const;
 
 private:
     QLineEdit *name;

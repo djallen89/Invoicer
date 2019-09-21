@@ -34,9 +34,12 @@ public:
     double quantify() const;
     double rate() const;
     double subtotal() const;
+    QString buildLatex() const;
+    QString sanitizeDescription() const;
 
 signals:
     void selectedChanged(bool s);
+    void subtotalChanged();
                            
 public slots:
     bool read(const QJsonObject &json);
