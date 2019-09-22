@@ -29,7 +29,6 @@ public:
     bool read(const QJsonObject &json);
     void write(QJsonObject &json) const;
     QString buildLatex() const;
-    void buildPDF();
                
 private slots:
     void newInvoice();
@@ -38,6 +37,7 @@ private slots:
     void saveAs();
     void open();
     void about();
+    void buildPDF();
     void setModified(bool m);
     void setSelectedCount(bool s);
     void pushLineItem();

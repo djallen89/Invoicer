@@ -134,35 +134,38 @@ void AddressInfoForm::write(QJsonObject &json) const
 
 QString AddressInfoForm::buildLatex() const
 {
-    /*
-\begin{minipage}{0.5\textwidth}
-  \LARGE
-  Dominick Allen \\
-  \normalsize
-  784 N. Milton Grove Rd \\
-  Elizabethtown, Pa 17022 \\
-  \textbf{Phone} \\
-  (814) 753-1345 \\
-  \textbf{Email} \\
-  \href{mailto:dominick.allen1989@gmail.com}{dominick.allen1989@gmail.com}
-\end{minipage}
-    */
-
     const QString begin = QStringLiteral("\\begin{minipage}{0.5") % QStringLiteral("\\textwidth}");
     const QString end = QStringLiteral("\\end{minipage}");
     const QString newline = QString("\n");
     const QString texNewline = QString("\\""\\");
-    const QString totalNewline = newline % texNewline;
+    const QString totalNewline = texNewline + newline;
     const QString hyperref = QStringLiteral("\\href{mailto:");
-    const QString emailAddress = getEmail();
+    const QString emailAddress = sanitize(getEmail());
 
-    return begin % newline
-        % getName() % totalNewline
-        % getAddress() % totalNewline
+    QString text = begin % newline
+        % sanitize(getName()) % totalNewline
+        % sanitize(getAddress()) % totalNewline
         % QStringLiteral("Phone") % totalNewline
-        % getPhone() % totalNewline
+        % sanitize(getPhone()) % totalNewline
         % QStringLiteral("Email") % totalNewline
         % hyperref % emailAddress % QStringLiteral("}{") % emailAddress % QStringLiteral("}") % totalNewline
         % end % newline;
+
+    return text;
 }
 
+QString sanitize(QString text)
+{
+    text = text.replace(QString("\\"), QString(""));
+    text = text.replace(QString("(\\$"), QString("\\$"));
+    text = text.replace(QString("#"), QString("\\#"));   
+    text = text.replace(QString("%"), QString("\\%"));
+    text = text.replace(QString("&"), QString("\\&"));
+    text = text.replace(QString("_"), QString("\\_"));
+    text = text.replace(QString("{"), QString("\\{"));
+    text = text.replace(QString("}"), QString("\\}"));
+    text = text.replace(QString("^"), QString("\\^"));
+    text = text.replace(QString("\n"), QString("\n\n"));
+    return text;
+}
+                                  

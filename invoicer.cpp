@@ -9,10 +9,13 @@
 #include <QStringBuilder>
 #include <QFileDialog>
 #include <QDir>
+#include <QTextStream>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QByteArray>
 #include <math.h>
+#include <unistd.h>
+#include <iostream>
 
 Invoicer::Invoicer(QWidget *parent) :
     QMainWindow(parent),
@@ -60,6 +63,7 @@ Invoicer::Invoicer(QWidget *parent) :
     connect(ui->addLineItemButton, &QPushButton::clicked, this, &Invoicer::pushLineItem);
     connect(ui->removeLineItemButton, &QPushButton::clicked, this, &Invoicer::popLineItem);
     connect(ui->removeSelectedButton, &QPushButton::clicked, this, &Invoicer::removeSelectedItems);
+    connect(ui->buildPDFButton, &QPushButton::clicked, this, &Invoicer::buildPDF);
 }
 
 Invoicer::~Invoicer()
@@ -199,6 +203,28 @@ void Invoicer::about()
     QMessageBox::about(this, title, aboutText);
 }
 
+void Invoicer::buildPDF()
+{
+    auto text = buildLatex();
+    QFile saveFile("/tmp/test.tex");
+    if (!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning("Couldn't open save file.");
+        return;
+    }
+
+    QTextStream out(&saveFile);
+    std::cout << text.toUtf8().constData() << std::endl;
+    out << text.toUtf8();
+    out.flush();
+    //char *tex_args[] = {"pdflatex", "/tmp/test.tex", NULL};
+    //char *okular_args[] = {"okular", "/tmp/test.pdf", NULL};
+    //execvp(tex_args[0], tex_args);
+    //execvp(okular_args[0], okular_args);
+    system("pdflatex /tmp/test.tex");
+    system("okular test.pdf");
+    return;
+}
+ 
 void Invoicer::setModified(bool m)
 {
     modified = m;
@@ -275,7 +301,7 @@ void Invoicer::removeSelectedItems()
 void Invoicer::setTotal()
 {
     double sum = calculateTotal();
-    ui->totalLabel->setText(QString::number(sum, 'f', 2));
+    ui->totalLabel->setText("Total: " + QString::number(sum, 'f', 2));
 }
 
 /* Public Methods */
@@ -441,12 +467,6 @@ void Invoicer::write(QJsonObject &json) const
     json["line_items"] = lineItemsArray;
 }
 
-void Invoicer::buildPDF()
-{
-    //auto pdf_text = new PDFBuilder();
-    //pdf_text.simple_output();
-}
-
 QString Invoicer::buildLatex() const
 {
     QString text_doc = QString("");
@@ -465,29 +485,33 @@ QString Invoicer::buildLatex() const
 
     auto invoice_number_text = QString("Invoice Number: \\#") + getInvoiceNumber() + QString("\n");
 
-    auto table_header = QString("  Date & Hours/Product & Quantity & Rate/Cost & Description""\\""\\""\\hline\n");
+    auto table_header = QString("  Date & Quantity & Rate/Cost & Description""\\""\\""\\hline\n");
     
-    auto table_begin = QString("  \\begin{longtabu} to 1.0\\textwidth {|l|c|r|r|X[l]|}\\hline\n") 
-        % table_header
-        % QString("  \\endfirsthead\n"
+    auto table_begin = QString("  \\begin{longtabu} to 1.0\\textwidth {|l|r|r|X[l]|}\\hline\n") 
+        + table_header
+        + QString("  \\endfirsthead\n"
                   "  \\hline \n\n")
-        % table_header
-        % QString("  \\endhead\n\n");
+        + table_header
+        + QString("  \\endhead\n\n");
 
     auto table_end = QString("\\end{longtabu}\n");
 
-    auto total = QString("\\begin{flushright} \\textbf{Total: ")
+    auto total = QString("\\begin{flushright} \\textbf{")
         + ui->totalLabel->text()
         + QString("}\\end{flushright}\n");
     auto footer = QString("\\end{document}");
-    
-    text_doc = header % your_info_minipage % client_info_minipage % invoice_number_text;
-    text_doc = text_doc % table_header % table_begin;
+
+    auto line_items_text = QString("");
     foreach(auto lineItem, lineItems) {
-        text_doc = text_doc % lineItem->buildLatex();
-        //subtotal += 
+        line_items_text = line_items_text + lineItem->buildLatex();
     }
-    text_doc = text_doc
+    
+    text_doc = header
+        % your_info_minipage
+        % client_info_minipage
+        % invoice_number_text
+        % table_begin
+        % line_items_text
         % table_end
         % total
         % footer;
@@ -517,6 +541,9 @@ void Invoicer::setupNewInvoice()
     lineItems.clear();
     pushLineItem();
 
+    setInvoiceNumber(QString(""));
+    setCurrencyName(QString(""));
+    setCurrencySymbol(QString(""));
     ui->totalLabel->setText("Total: " + QString::number(calculateTotal(), 'f', 2));
 }
 

@@ -7,6 +7,8 @@
 #include <QString>
 #include <QJsonObject>
 
+QString sanitize(QString text);
+
 class AddressInfoForm : public QGroupBox
 {
     Q_OBJECT

@@ -213,13 +213,11 @@ void LineItem::updateIndex(int idx) {
 
 QString LineItem::buildLatex() const
 {
-    //auto table_header = "Date & Hours/Product & Quantity & Rate/Cost & Description""\\""\\""\\hline\n";
     auto amp = QString(" & ");
     auto desc_text = sanitizeDescription();
-    //auto desc_text = description->toPlainText().replace(QString("\n"), QString("\n\n"));
-    auto h_or_p = timeSelect->isChecked() ? QString("& H &") : QString("& P &");
-    return date->date().toString("  MM/dd") % amp % h_or_p % amp %  quantity->text()
-        % amp % unitCost->text() % amp % "\n  "
+    return date->date().toString("  MM/dd") % amp
+        % quantity->text() % amp
+        % unitCost->text() % amp % "\n  "
         % desc_text % QString("\\""\\""\\hline\n\n");
 }
 
@@ -227,7 +225,14 @@ QString LineItem::sanitizeDescription() const
 {
     auto desc_text = description->toPlainText();
     desc_text = desc_text.replace(QString("\\"), QString(""));
-    desc_text = desc_text.replace(QRegExp("([&#\\$%_{}\\^])"), "\\1");
+    desc_text = desc_text.replace(QString("(\\$"), QString("\\$"));
+    desc_text = desc_text.replace(QString("#"), QString("\\#"));
+    desc_text = desc_text.replace(QString("%"), QString("\\%"));
+    desc_text = desc_text.replace(QString("&"), QString("\\&"));
+    desc_text = desc_text.replace(QString("_"), QString("\\_"));
+    desc_text = desc_text.replace(QString("{"), QString("\\{"));
+    desc_text = desc_text.replace(QString("}"), QString("\\}"));
+    desc_text = desc_text.replace(QString("^"), QString("\\^"));
     desc_text = desc_text.replace(QString("\n"), QString("\n\n"));
     return desc_text;
 }
